@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatSAELsima</title>
+  
+  <!-- Import Font Poppins -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:100,200,300,400,500,600,700,800">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+ 
+  <style>
+    /* Terapkan font Poppins ke seluruh elemen */
+    * {
+      font-family: 'Poppins', sans-serif;
+    }
+
+        
+      body {
+        
+        font-size: medium;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #1b5e20, #388e3c, #2e7d32); /* Warna hijau */
+        background-size: 400% 400%;
+        animation: gradientBG 10s ease infinite;
+        color: #fff;
+      }
+  
+      @keyframes gradientBG {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+      }
+  
+      #chat-container {
+        width: 100%;
+        height: 100%;
+        max-width: 400px;
+        max-height: 600px;
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid #ddd;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+  
+      #chatbox {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background-color: #f9f9f9;
+        color: #333;
+      }
+  
+      #chatbox::-webkit-scrollbar {
+        width: 6px;
+      }
+  
+      #chatbox::-webkit-scrollbar-thumb {
+        background: #2e7d32; /* Warna hijau */
+        border-radius: 3px;
+      }
+  
+      .bubble {
+        max-width: 80%;
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 17px;
+        line-height: 1.4;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.3s ease;
+      }
+  
+      /* Warna background pesan yang dikirim oleh pengguna (hijau) */
+      .bubble.user {
+        align-self: flex-end;
+        background-color: #1b5e20; /* Warna hijau */
+        color: #fff;
+      }
+  
+      /* Warna background pesan yang diterima dari bot */
+      .bubble.bot {
+        align-self: flex-start;
+        background-color: #e0e0e0;
+        color: #333;
+      }
+  
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+  
+      #input-container {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid #ddd;
+        background-color: #fff;
+      }
+  
+      #userInput {
+        flex: 1;
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+  
+      /* Warna tombol kirim diubah ke hijau */
+      #sendBtn {
+        margin-left: 10px;
+        padding: 10px 13px;
+        font-size: 14px;
+        background: linear-gradient(90deg, #1b5e20, #388e3c); /* Warna hijau */
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+  
+      /* Warna hover tombol kirim */
+      #sendBtn:hover {
+        background: linear-gradient(90deg, #2e7d32, #4caf50); /* Hijau lebih terang */
+      }
+  </style>
+  
+  
+  
+</head>
+<body>
+  <div id="chat-container">
+    <div id="chatbox">
+     <!-- Pesan akan ditambahkan secara dinamis oleh JavaScript -->
+    </div>
+    <div id="input-container">
+      <input id="userInput" type="text" placeholder="Tulis pesan Anda...">
+      <button id="sendBtn"><i class="fas fa-paper-plane"></i> Kirim</button>
+    </div>
+  </div>
+
+  <script>
+    const chatbox = document.getElementById('chatbox');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    const responses = {
+      "halo": "Halo! Ada yang bisa saya bantu?", 
+      "iya": `Ketik '<span style="color: #1b5e20;">sae</span>', '<span style="color: #1b5e20;">harga</span>', '<span style="color: #1b5e20;">faq</span>', atau '<span style="color: #1b5e20;">admin</span>' untuk informasi lebih lanjut.`,
+      "tidak": "Baik, chatbot akan ditutup.",
+      "sae": "Informasi tentang SAE L'SIMA dapat ditemukan <a href='tentang.html' target='_blank'>disini</a>.",
+      "faq": "Silakan kunjungi <a href='faq.html' target='_blank'>FAQ</a> untuk jawaban atas pertanyaan umum.",
+      "harga": "Lihat informasi harga layanan di <a href='pricing.html' target='_blank'>halaman harga</a>.",
+      "admin": "Hubungi admin kami melalui WhatsApp: <a href='https://wa.me/6285730809209?text=Halo, saya ingin tahu lebih lanjut tentang SAE%27Lsima!' target='_blank'>Klik di sini</a>.",
+    };
+
+    function addMessage(sender, message) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `bubble ${sender}`;
+      messageDiv.innerHTML = message;
+      chatbox.appendChild(messageDiv);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    function handleUserMessage() {
+      const message = userInput.value.trim().toLowerCase();
+      if (message) {
+        addMessage('user', message);
+        userInput.value = '';
+
+        if (message === "tidak") {
+          setTimeout(() => chatbox.style.display = 'none', 1000);
+        } else {
+          const response = responses[message] || "Maaf, coba gunakan kata kunci seperti 'sae', 'faq', 'harga', atau 'admin'.";
+          setTimeout(() => addMessage('bot', response), 500);
+        }
+      }
+    }
+
+    sendBtn.addEventListener('click', handleUserMessage);
+    userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        handleUserMessage();
+      }
+    });
+
+    window.addEventListener('load', () => {
+      addMessage('bot', 'Halo! Ada yang bisa saya bantu? Silakan ketik "iya" atau "tidak".');
+    });
+</script>
+
+</body>
+</html>
